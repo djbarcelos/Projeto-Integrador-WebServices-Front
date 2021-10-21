@@ -3,6 +3,7 @@ import { Switch, Route } from 'react-router-dom';
 import Configuracao from '../pages/Config';
 import Home from '../pages/Home';
 import MyCalls from '../pages/MyCalls';
+import Login from '../pages/Login';
 
 const Router = () => {
 
@@ -27,9 +28,9 @@ const Router = () => {
                 <Configuracao></Configuracao>
             </Route>
 
-            <Route exact path="/login">
-                {/* <Configuracao></Configuracao> */}
-            </Route>
+            {/* <Route exact path="/login">
+                <Login></Login>
+            </Route> */}
 
         </Switch>
     )

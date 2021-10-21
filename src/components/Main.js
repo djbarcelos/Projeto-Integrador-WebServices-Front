@@ -2,6 +2,7 @@ import styled from "styled-components";
 
 export const PageContainer = styled.div`
     padding: 25px 17%;
+    ${props => props};
 `;
 
 export const Card = styled.div`
