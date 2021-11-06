@@ -1,6 +1,6 @@
-import React, { useState, componentDidMount } from "react"
+import React, { useState, useEffect } from "react"
 import { PageContainer, Card, TituloCard, SubTituloCard, ImgCard, FooterCard, ButtonCard } from "../../components/Main"
-import { CalendarOutlined, SendOutlined } from '@ant-design/icons';
+import { CalendarOutlined } from '@ant-design/icons';
 import { Container, PageTitle } from "./styled";
 import { Modal } from 'antd';
 import ScheduleService from '../ModalViews/ScheduleService';
@@ -12,17 +12,13 @@ export default function Page(props) {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [specialty, setSpecialty] = useState();
     const [titleModal, setTitleModal] = useState();
-    const [user, setUser] = useState();
+    const [userName, setUserName] = useState();
 
-    const callApi = async () => {
-
-        const response = await fetch('/api/mensagem');
-        const body = await response.json();
-        
-        if (response.status !== 200) console.error(body.message);
-
-        setUser(body.express)
-    }; callApi();
+    useEffect(() => {
+        const user = JSON.parse(localStorage.getItem('user'))
+        const arrayName = user.name.split(' ');
+        setUserName(arrayName[0]);
+    }, [])
 
     const showModal = (specialty) => {
         setIsModalVisible(true);
@@ -40,7 +36,7 @@ export default function Page(props) {
     return (
         <>
             <PageContainer>
-                <PageTitle>Olá, {user} <p>Como podemos te ajudar?</p></PageTitle>
+                <PageTitle>Olá, {userName} <p>Como podemos te ajudar?</p></PageTitle>
                 <Container>
                     <Card >
                         <TituloCard>Médico(a)</TituloCard>

@@ -1,17 +1,62 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { PageContainer } from "../../components/Main";
-import { Space, Table, Tag, Menu, Dropdown, Modal } from 'antd';
+import { Table, Tag, Menu, Dropdown, Modal, notification } from 'antd';
 import { PageTitle } from './styled';
 import 'antd/dist/antd.css';
 import dayjs from "dayjs";
 import ScheduleService from '../ModalViews/ScheduleService';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
 
 export default function Page(props) {
+
+  const { confirm } = Modal;
 
   const [query, setQuery] = useState({});
   const [indexTable, setIndexTable] = useState();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [titleModal, setTitleModal] = useState();
+  const [data, setData] = useState();
+
+  useEffect(() => {
+    apiRequest();
+  }, [])
+
+  async function apiRequest() {
+    const request = await fetch("http://localhost:3030/mycalls", {
+      method: "GET",
+      headers: { 'Content-Type': 'application/json', 'authorization': `${sessionStorage.getItem('authorization')}` },
+    }).then(response => response.json());
+
+    if (request.code === 400 || request.code === 404)
+      notification['error']({
+        message: 'Error',
+        description:
+          request.message,
+      });
+
+    if (request.code === 200) {
+      setData(request.data.map(e => { e.key = e._id; return e }));
+    }
+  }
+
+  async function apiRequestMarkOff() {
+    const request = await fetch("http://localhost:3030/mark_off", {
+      method: "PUT",
+      headers: { 'Content-Type': 'application/json', 'authorization': `${sessionStorage.getItem('authorization')}` },
+      body: JSON.stringify({ queryId: query._id })
+    }).then(response => response.json());
+
+    if (request.code === 400 || request.code === 404)
+      notification['error']({
+        message: 'Error',
+        description:
+          request.message,
+      });
+
+    if (request.code === 200) {
+      apiRequest();
+    }
+  }
 
   const columns = [
     {
@@ -19,10 +64,11 @@ export default function Page(props) {
       dataIndex: 'specialty',
       key: 'specialty',
       render: value => {
-        if (value.length === 2)
-          return <a>{`${value[0]} ${value[1]}`}</a>;
 
-        return <a>{value}</a>;
+        if (value.length === 2)
+          return <a>{`${value[0].toUpperCase()} ${value[1].toUpperCase()}`}</a>;
+
+        return <a>{value[0].toUpperCase()}</a>;
       },
     },
     {
@@ -75,58 +121,18 @@ export default function Page(props) {
     },
   ];
 
-  const data = [
-    {
-      specialty: ['Psicólogo'],
-      date: new Date(),
-      schedule: '10:00',
-      states: {
-        state: 'scheduled',
-        updateLog: {},
-        lastUpdateLog: {}
-      }
-    },
-    {
-      specialty: ['Médico', 'Cardiologia'],
-      date: new Date(),
-      schedule: '15:00',
-      states: {
-        state: 'calledoff',
-        updateLog: {},
-        lastUpdateLog: {}
-      }
-    },
-    {
-      specialty: ['Médico', 'Ortopedia'],
-      date: new Date('2021-08-23'),
-      schedule: '10:00',
-      states: {
-        state: 'accomplished',
-        updateLog: {},
-        lastUpdateLog: {}
-      }
-    },
-    {
-      specialty: ['Nutricionista'],
-      date: new Date(),
-      schedule: '10:00',
-      states: {
-        state: 'accomplished',
-        updateLog: {},
-        lastUpdateLog: {}
-      }
-    },
-  ];
-
   const menu = (
     <Menu>
-      <Menu.Item key="1" onClick={() => { console.log(query); showModal(); }}>Reagendar</Menu.Item>
-      <Menu.Item key="2">Desmarcar</Menu.Item>
+      <Menu.Item key="1" onClick={() => showModal()}>Reagendar</Menu.Item>
+      <Menu.Item key="2" onClick={() => showDeleteConfirm()}>Desmarcar</Menu.Item>
     </Menu>
   );
 
   const showModal = () => {
-    setIsModalVisible(true);
+    if (query.states.state === "scheduled")
+      setIsModalVisible(true);
+    else
+      countDown('Não é possivel reagendar atendimetos já realizados ou cancelados.')
   };
 
   const handleCancel = () => {
@@ -136,6 +142,44 @@ export default function Page(props) {
   const setTitle = (title) => {
     setTitleModal(title);
   };
+
+  const showDeleteConfirm = () => {
+    if (query.states.state === "scheduled")
+      confirm({
+        title: 'Cancelar o agendamento da consulta?',
+        icon: <ExclamationCircleOutlined />,
+        content: `Em caso de cancelamento, um novo agendamento deve ser realizado. 
+                Dia: ${dayjs(query.date).format('DD/MM/YYYY')}`,
+        okText: 'Desmarcar',
+        okType: 'danger',
+        cancelText: 'Cancelar',
+        onOk() {
+          apiRequestMarkOff()
+        },
+        onCancel() {
+        },
+      });
+    else
+      countDown('Não é possivel desmarcar atendimetos já realizados ou cancelados.')
+  }
+
+  function countDown(message) {
+    let secondsToGo = 5;
+    const modal = Modal.info({
+      title: 'Aviso',
+      content: ` ${message} ${secondsToGo} s.`,
+    });
+    const timer = setInterval(() => {
+      secondsToGo -= 1;
+      modal.update({
+        content: `${message} ${secondsToGo} s.`,
+      });
+    }, 1000);
+    setTimeout(() => {
+      clearInterval(timer);
+      modal.destroy();
+    }, secondsToGo * 1000);
+  }
 
   return (
     <>

@@ -11,13 +11,13 @@ import moment from 'moment';
 
 export default function Page(props) {
 
-    const { specialty, date, schedule } = props;
+    const { specialty, schedule } = props;
 
     const [form] = Form.useForm();
 
     useEffect(() => {
         props.titleModal('Agendar Atendimento');
-    }, [])
+    })
 
     async function init() {
 
@@ -28,14 +28,29 @@ export default function Page(props) {
 
     }; init();
 
-    const onFinish = (values) => {
+    const onFinish = async (values) => {
 
         if (values.specialty[0] === 'Medico' && values.specialty.length === 1) {
             openNotification();
             return;
         }
 
-        console.info('Success:', values);
+        const request = await fetch("http://localhost:3030/register_mycalls", {
+            method: "PUT",
+            headers: { 'Content-Type': 'application/json', 'authorization': `${sessionStorage.getItem('authorization')}` },
+            body: JSON.stringify(values)
+        }).then(response => response.json());
+
+        if (request.code === 400 || request.code === 404)
+            notification['error']({
+                message: 'Error',
+                description:
+                    request.message,
+            });
+
+        if (request.code === 200) {
+            window.location.href = '/meus-atendimentos';
+        }
     };
     const { Option } = Select;
 

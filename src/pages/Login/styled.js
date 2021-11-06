@@ -10,17 +10,17 @@ export const PageContainerLogin = styled.div`
 `;
 
 export const CardLogin = styled.div `
-    width: 600px;
-    height: 500px;
+    width: 500px;
+    height: 400px;
     margin: auto;
-    padding: 40px;
+    padding: 15px;
     background-color: white;
     border-radius: 10px;
     box-shadow:  0px 2px 20px 0px var(--bg-color-secondary);
 `
 
 export const TitleCardLogin = styled.div `
-    font-size: 30px;
+    font-size: 20px;
     text-align: center;
     font-weight: bold;
     color: var(--bg-color-secondary);

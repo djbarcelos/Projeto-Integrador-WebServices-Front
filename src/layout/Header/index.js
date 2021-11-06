@@ -1,14 +1,14 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Nav from "../Nav";
 import Menu from "../../components/Menu";
 import { Header, HeaderLogo, HeaderContainer, ImgLogo, Title, LogoContainer } from './styled'
 import { UserOutlined } from '@ant-design/icons';
 
-export default function header() {
+export default function header(props) {
 
     const optionsMenu = [
         {
-            name: 'Username',
+            name: props.userName,
             icon: <UserOutlined style={{ fontSize: '16px', marginRight: '5px' }} />,
             to: '/perfil',
             children: [
@@ -22,7 +22,12 @@ export default function header() {
                 },
                 {
                     name: 'Sair',
-                    to: '/login',
+                    to: '/',
+                    onClick: () => {
+                        sessionStorage.removeItem('authorization');
+                        localStorage.removeItem('user');
+                        window.location.href = '/login';
+                    }
                 }
             ]
         }
